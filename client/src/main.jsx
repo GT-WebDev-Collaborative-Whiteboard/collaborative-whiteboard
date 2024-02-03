@@ -7,6 +7,9 @@ import {
   RouterProvider,
 } from 'react-router-dom'
 import Home from './pages/home.jsx'
+import Dashboard from './pages/Dashboard.jsx'
+import Login from './pages/Login.jsx'
+import Whiteboard from './pages/Whiteboard.jsx'
 
 const router = createBrowserRouter([
   {
@@ -16,6 +19,18 @@ const router = createBrowserRouter([
       {
         index: true,
         element: <Home />
+      },
+      {
+        path: 'dashboard',
+        element: <Dashboard />
+      },
+      {
+        path: 'login',
+        element: <Login />
+      },
+      {
+        path: 'whiteboard',
+        element: <Whiteboard />
       }
     ]
   }
