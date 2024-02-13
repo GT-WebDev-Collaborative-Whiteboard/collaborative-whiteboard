@@ -1,4 +1,6 @@
 import crypto from 'crypto';
+import fs from 'fs';
+import fernet from 'fernet';
 
 const { privateKey, publicKey } = crypto.generateKeyPairSync('rsa', {
   modulusLength: 2048,
@@ -12,4 +14,10 @@ const { privateKey, publicKey } = crypto.generateKeyPairSync('rsa', {
   }
 });
 
-console.log(privateKey, publicKey);
+crypto.randomBytes(32, (err, buffer) => {
+  fs.writeFileSync('./fernet.pem', buffer.toString('base64'));
+});
+
+// console.log(privateKey, publicKey);
+// fs.writeFileSync('./private.pem', privateKey);
+// fs.writeFileSync('./public.pem', publicKey);

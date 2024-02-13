@@ -1,9 +1,11 @@
 import crypto from 'crypto';
+import fernet from 'fernet';
 import express from 'express';
 import 'dotenv/config';
 
 const app = express();
 const PORT = 7766;
+const secret = new fernet.Secret(process.env.FERNET_KEY);
 
 // since the client is a browser-based app, and is "public", the client id is not really secret, neither is the redirect url.
 /*
@@ -28,6 +30,11 @@ app.get('/auth', (req, res) => {
     redirect_url
   } = req.params;
 
+  const {
+    user,
+    password
+  } = req.body;
+
   // handle differently depending on response type
   // current only authorization code flow is supported
   if (response_type === "code") {
@@ -39,12 +46,27 @@ app.get('/auth', (req, res) => {
       res.status(400).send("Invalid user credentials");
       return;
     }
-    const authorizationCode = generateAuthorizationCode(scope);
+    const authorizationCode = generateAuthorizationCode(user);
     res.redirect(redirect_url + "?code=" + authorizationCode);
   } else {
     res.status(400).send("Invalid response type");
   }
 });
+
+function generateAuthorizationCode(user) {
+  const encryptedToken = new fernet.Token({
+    secret,
+  });
+  encryptedToken.encode("Hello");
+
+  console.log(
+    new fernet.Token({
+      secret,
+      token: encryptedToken.token,
+      ttl: 0
+    }).decode()
+  );
+}
 
 app.listen(PORT, () => {
   console.log(`auth server listening on port ${PORT}`);
