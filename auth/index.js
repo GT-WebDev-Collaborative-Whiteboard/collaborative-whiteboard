@@ -2,6 +2,7 @@ import crypto, { verify } from 'crypto';
 import fernet from 'fernet';
 import express from 'express';
 import 'dotenv/config';
+import axios from 'axios';
 
 const app = express();
 const PORT = 7766;
@@ -23,13 +24,20 @@ const secret = new fernet.Secret(process.env.FERNET_KEY);
   accountExists: <boolean>
 }
 */
+
+// NOTE: will be in the database or somewhere else, but here temporarily
 const authorizationCodes = {};
 const registeredClients = [
   {
     client_id: "sample-client-id",
-    client_secret: "sample-client-id",
+    client_secret: "sample-client-secret",
     redirect_url: "https://localhost:5180/oauthredirect",
   },
+  {
+    client_id: "local-sample-client-id",
+    client_secret: "local-sample-client-secret",
+    redirect_url: "https://localhost:7766/oauthredirect"
+  }
 ]
 const CODE_LIFE_SPAN = 60000; // 60 seconds
 const TOKEN_LIFE_SPAN = 3600000
@@ -71,19 +79,19 @@ app.post('/auth', (req, res) => {
 });
 
 function authenticateUser(user, password) {
-
+  return false;
 }
 
 function verifyClientInfo(client_id, redirect_url) {
-
+  return false;
 }
 
 function authenticateClient(client_id, client_secret) {
-
+  return false;
 }
 
 function verifyAuthorizationCode(client_id, redirect_url) {
-  
+  return false;
 }
 
 function generateAuthorizationCode(user, client_id, redirect_url) {
@@ -168,6 +176,20 @@ function generateAccessToken(authorizationCode, client_id, redirect_url) {
 
   return JSON.stringify(accessToken);
 }
+
+app.get('/test', (req, res) => {
+  const sampleAuthorizationCodeReqData = {
+    response_type: "authorization_code",
+    client_id: "local-sample-client-id",
+    client_secret: "local-sample-client-secret",
+    redirect_url: "https://localhost:7766/oauthredirect"
+  };
+
+  axios.post("http://localhost:7766/auth", sampleAuthorizationCodeReqData).then((res) => {
+  console.log(res);  
+  console.log("posted");
+  });
+});
 
 app.listen(PORT, () => {
   console.log(`auth server listening on port ${PORT}`);
