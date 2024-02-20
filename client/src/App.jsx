@@ -8,7 +8,7 @@ function App() {
       <Outlet />
       <footer>Footer</footer>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
