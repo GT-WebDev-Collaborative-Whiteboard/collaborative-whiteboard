@@ -8,7 +8,7 @@
     "client": "npm run --prefix client dev",
     "server": "npm run --prefix server dev",
     "dev": "npm-run-all -p client server",
-    "postinstall": "(cd client && npm i) && (cd ../server && npm i) && (cd ../auth && npm i && cd sample-client && npm i)"
+    "postinstall": "(cd client && npm i) && (cd ../server && npm i) && (cd ../auth && npm i)"
   },
   "author": "Timothy Sung",
   "license": "ISC",
