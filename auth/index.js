@@ -8,15 +8,6 @@ const app = express();
 const PORT = 7766;
 const secret = new fernet.Secret(process.env.FERNET_KEY);
 
-// since the client is a browser-based app, and is "public", the client id is not really secret, neither is the redirect url.
-/*
-  Flow:
-  Web app <request authorization code from auth server, passing user credentials> -> auth server
-  Web app <- <receives authorization code with scope (user id)> auth server
-  Web app <exchanges authorization code for access token> auth server
-  Web app stores the access token in local storage 
-*/
-
 /* req body
 {
   username: <hashed username>
@@ -83,6 +74,9 @@ function authenticateUser(user, password) {
 }
 
 function verifyClientInfo(client_id, redirect_url) {
+  for (const client of registeredClients) {
+    if (client.client_id === client_id && client.redirect_url === redirect_url) return true;
+  }
   return false;
 }
 

@@ -5,6 +5,6 @@ const authUserSchema = new mongoose.Schema({
   password: String,
 });
 
-const authUserModel = new mongoose.Model(authUserSchema);
+const authUser = mongoose.model("AuthUser", authUserSchema);
 
-export default authUserModel;
+export default authUser;
