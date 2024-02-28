@@ -3,6 +3,7 @@ import fernet from 'fernet';
 import express from 'express';
 import 'dotenv/config';
 import axios from 'axios';
+import { authenticateUser } from './database/actions/user-handler';
 
 const app = express();
 const PORT = 7766;
@@ -33,7 +34,7 @@ const registeredClients = [
 const CODE_LIFE_SPAN = 60000; // 60 seconds
 const TOKEN_LIFE_SPAN = 3600000
 
-app.post('/auth', (req, res) => {
+app.post('/auth', async (req, res) => {
   const {
     response_type,
     client_id,
@@ -58,7 +59,7 @@ app.post('/auth', (req, res) => {
       return;
     }
 
-    if (!authenticateUser(user, password)) {
+    if (!authenticateUser(user, password, process.env.AUTH_MONGO_URI)) {
       res.status(400).send("Invalid user credentials");
       return;
     }
@@ -68,10 +69,6 @@ app.post('/auth', (req, res) => {
     res.status(400).send("Invalid response type");
   }
 });
-
-function authenticateUser(user, password) {
-  return false;
-}
 
 function verifyClientInfo(client_id, redirect_url) {
   for (const client of registeredClients) {
@@ -95,7 +92,8 @@ function generateAuthorizationCode(user, client_id, redirect_url) {
   const data = {
     user,
     client_id,
-    redirect_url
+    redirect_url,
+    exp: new Date().now() + CODE_LIFE_SPAN,
   };
   encryptedToken.encode(JSON.stringify(data));
   // console.log(
@@ -109,7 +107,7 @@ function generateAuthorizationCode(user, client_id, redirect_url) {
   authorizationCodes[code] = {
     client_id,
     redirect_url,
-    exp: new Date.now() + CODE_LIFE_SPAN
+    exp: data.exp
   }
   return code;
 }

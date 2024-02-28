@@ -1,3 +1,4 @@
+import axios from "axios";
 import { authenticateUser, registerUser } from "./database/actions/user-handler.js";
 import 'dotenv/config'
 
@@ -14,6 +15,10 @@ function testAuthenticate() {
   authenticateUser("testname", "testpassword", process.env.AUTH_MONGO_URI).then((success) => {
     console.log(success, "authenticate success");
   });
+}
+
+function testAuthCode() {
+  axios.post()
 }
 
 function main() {
