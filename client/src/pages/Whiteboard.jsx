@@ -1,20 +1,5 @@
 import { useEffect, useRef, useState} from 'react';
 
-const ws = new WebSocket('ws://localhost:8080');
-
-ws.onmessage = (event) => {
-  console.log(event.data);
-};
-
-ws.onopen = () => {
-  console.log("Connected to server");
-};
-
-ws.onerror = error => {
-  console.error("WebSocket error:", error);
-};
-
-
 function Whiteboard() {
   const canvasRef = useRef(null);
   const contextRef = useRef(null);
@@ -45,15 +30,17 @@ function Whiteboard() {
 
   const handleReceiveDrawingData = (event) => {
     const dataUrl = event.data;
+    // console.log(dataUrl);
     drawImageFromDataUrl(dataUrl);
   };
 
-  const drawImageFromDataUrl = (dataUrl) => {
+  const drawImageFromDataUrl = async (dataUrl) => {
     const image = new Image();
     image.onload = () => {
       contextRef.current.drawImage(image, 0, 0);
     };
-    image.src = dataUrl;
+    image.src = await dataUrl.text();
+    console.log("url", image.src);
   };
 
   const startDrawing = ({nativeEvent}) => {
@@ -126,6 +113,6 @@ function Whiteboard() {
     </div>
     </>
   )
-};
+}
 
 export default Whiteboard;
