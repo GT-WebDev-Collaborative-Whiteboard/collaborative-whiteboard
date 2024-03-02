@@ -126,6 +126,6 @@ function Whiteboard() {
     </div>
     </>
   )
-};
+}
 
 export default Whiteboard;
