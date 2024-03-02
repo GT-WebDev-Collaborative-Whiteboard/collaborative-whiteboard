@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "client": "npm run --prefix client dev",
     "server": "npm run --prefix server dev",
-    "dev": "npm-run-all -p client server"
+    "dev": "npm-run-all -p client server",
+    "postinstall": "(cd client && npm i) && (cd ../server && npm i)"
   },
   "author": "Timothy Sung",
   "license": "ISC",
