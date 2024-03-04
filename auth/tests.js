@@ -18,7 +18,7 @@ function testAuthenticate() {
 }
 
 function testAuthCode() {
-  axios.post()
+  axios.post();
 }
 
 function main() {

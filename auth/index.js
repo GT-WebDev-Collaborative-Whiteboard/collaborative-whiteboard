@@ -3,12 +3,18 @@ import fernet from 'fernet';
 import express from 'express';
 import 'dotenv/config';
 import axios from 'axios';
-import { authenticateUser } from './database/actions/user-handler';
+import cors from 'cors';
+import { authenticateUser } from './database/actions/user-handler.js';
+import bodyParser from 'body-parser';
 
 const app = express();
 const PORT = 7766;
 const secret = new fernet.Secret(process.env.FERNET_KEY);
 
+app.use(cors());
+app.use(express.json());
+app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: true }))
 /* req body
 {
   username: <hashed username>
@@ -23,13 +29,13 @@ const registeredClients = [
   {
     client_id: "sample-client-id",
     client_secret: "sample-client-secret",
-    redirect_url: "https://localhost:5180/oauthredirect",
+    redirect_url: "http://localhost:5173/oauthredirect",
   },
   {
     client_id: "local-sample-client-id",
     client_secret: "local-sample-client-secret",
     redirect_url: "https://localhost:7766/oauthredirect"
-  }
+  },
 ]
 const CODE_LIFE_SPAN = 60000; // 60 seconds
 const TOKEN_LIFE_SPAN = 3600000
@@ -39,17 +45,17 @@ app.post('/auth', async (req, res) => {
     response_type,
     client_id,
     redirect_url
-  } = req.params;
-
+  } = req.query;
   const {
     user,
     password
   } = req.body;
+  // console.log("body", req.body);
 
   // handle differently depending on response type
   // current only authorization code flow is supported
   if (response_type === "code") {
-    if (typeof client_id === undefined || typeof redirect_url === undefined || client_id !== process.env.VALID_CLIENT) { // add redirect url check also
+    if (typeof client_id === undefined || typeof redirect_url === undefined) { // add redirect url check also
       res.status(400).send("Invalid request");
       return;
     }
@@ -64,7 +70,9 @@ app.post('/auth', async (req, res) => {
       return;
     }
     const authorizationCode = generateAuthorizationCode(user, client_id, redirect_url);
-    res.status(303).redirect(redirect_url + "?code=" + authorizationCode);
+    // console.log("auth code: ", authorizationCode);
+    // res.status(303).redirect(redirect_url + "?code=" + authorizationCode);
+    res.status(200).send(authorizationCode);
   } else {
     res.status(400).send("Invalid response type");
   }
@@ -78,11 +86,26 @@ function verifyClientInfo(client_id, redirect_url) {
 }
 
 function authenticateClient(client_id, client_secret) {
+  for (const client of registeredClients) {
+    if (client.client_id === client_id && client.client_secret === client_secret) return true;
+  }
   return false;
 }
 
-function verifyAuthorizationCode(client_id, redirect_url) {
-  return false;
+// returns username if successfully verified
+function verifyAuthorizationCode(authorizationCode, client_id, redirect_url) {
+  const data = JSON.parse(new fernet.Token({
+    secret,
+    token: authorizationCode,
+    ttl: 0
+  }).decode());
+
+  const user = data.user;
+  const data_client_id = data.client_id;
+  const data_redirect_url = data.redirect_url;
+
+  if (data_client_id === client_id && data_redirect_url === redirect_url) return user;
+  return null;
 }
 
 function generateAuthorizationCode(user, client_id, redirect_url) {
@@ -93,16 +116,9 @@ function generateAuthorizationCode(user, client_id, redirect_url) {
     user,
     client_id,
     redirect_url,
-    exp: new Date().now() + CODE_LIFE_SPAN,
+    exp: Date.now() + CODE_LIFE_SPAN,
   };
   encryptedToken.encode(JSON.stringify(data));
-  // console.log(
-  //   new fernet.Token({
-  //     secret,
-  //     token: encryptedToken.token,
-  //     ttl: 0
-  //   }).decode()
-  // );
   const code = encryptedToken.token;
   authorizationCodes[code] = {
     client_id,
@@ -123,50 +139,47 @@ app.post('/token', (req, res) => {
   } = req.body;
 
   if (grant_type != "authorization_code" || !authorizationCode || !client_id || !client_secret || !redirect_url) {
-    res.send(400).send("Invalid request");
+    res.status(400).send("Invalid request");
     return;
   }
 
   if (!authenticateClient(client_id, client_secret)) {
-    return res.send(400).send("Invalid client");
+    return res.status(400).send("Invalid client");
   }
 
   const accessToken = generateAccessToken(authorizationCode, client_id, redirect_url);
   if (!accessToken) {
-    return res.send(400).send("Access denied");
+    return res.status(400).send("Access denied");
   }
+
+  return res.status(200).send(accessToken);
 });
 
 function generateAccessToken(authorizationCode, client_id, redirect_url) {
-  const data = JSON.parse(new fernet.Token({
-    secret,
-    token: authorizationCode,
-    ttl: 0
-  }).decode());
-
-  const {
-    user,
-    data_client_id,
-    data_redirect_url,
-  } = data;
-
-  if (!verifyAuthorizationCode(client_id, redirect_url)) {
+  const user = verifyAuthorizationCode(authorizationCode, client_id, redirect_url);
+  if (!user) {
     return null;
   }
 
   const payload = {
     user,
-    iss: ISSUER,
+    iss: process.env.AUTH_ISS,
     exp: Date.now() + TOKEN_LIFE_SPAN
   };
 
   const accessToken = {
     access_token: payload,
     token_type: "JWT",
-    expires_in: payload.exp
+    expires_in: payload.exp,
+    iss: process.env.AUTH_ISS
   };
 
-  return JSON.stringify(accessToken);
+  const encryptedToken = new fernet.Token({
+    secret
+  });
+
+  encryptedToken.encode(JSON.stringify(accessToken));
+  return encryptedToken.token;
 }
 
 app.get('/test', (req, res) => {
@@ -181,6 +194,42 @@ app.get('/test', (req, res) => {
   console.log(res);  
   console.log("posted");
   });
+});
+
+// receive access token from resource server, return user is access token is valid, otherwise return status 400
+app.get("/verifytoken", async (req, res) => {
+  let { token } = req.query;
+
+  try {
+    token = JSON.parse(new fernet.Token({
+      secret,
+      token,
+      ttl: 0,
+    }).decode());
+  } catch (e) {
+    return res.status(400).send("Unintelligible token");
+  }
+
+  const {
+    access_token,
+    token_type,
+    expires_in,
+    iss,
+  } = token;
+
+  // check validity
+  if (!access_token || !token_type || !expires_in || !iss) {
+    return res.status(400).send("Invalid request");
+  }
+
+  if (iss !== process.env.AUTH_ISS) {
+    return res.status(400).send("Invalid issuer");
+  }
+
+  if (expires_in < Date.now()) {
+    return res.status(400).send("Token expired");
+  }
+  return res.status(200).send(access_token.user);
 });
 
 app.listen(PORT, () => {
