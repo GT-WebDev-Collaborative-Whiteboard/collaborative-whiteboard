@@ -5,8 +5,41 @@ import connectDB from './database/connect.js';
 const app = express();
 
 app.get("/", (req, res) => {
-  res.send("testing");
+  return res.send("testing");
 });
+
+// app.get("/", (req, res) => {
+//   const sampleData = {
+//     username: "username",
+//     data: "whatever",
+//   };
+
+//   connectDB(url);
+
+//   const newDBEntry = new userModel({sampleData});
+//   newDBEntry.save();
+//   res.send("testing");
+// });
+
+// function getWhiteboardsFromUser(user) {
+//   connectDB(process.env.MONGO_URI);
+
+//   userModel.find({user})
+// }
+
+// /*
+//   {
+//     user: username,
+//     password: password,
+//     whiteboards: [whiteboard names]
+//   }
+// */
+// app.post("/registerUser", (req, res) => {
+//   req.body;
+//   req.query;
+//   res.status();
+//   res.send();
+// });
 
 async function start() {
   const port = process.env.PORT;
