@@ -1,9 +1,25 @@
 import { useEffect, useRef, useState } from "react";
+
+const ws = new WebSocket("ws://localhost:8080");
+
+ws.onmessage = (event) => {
+  console.log(event.data);
+};
+
+ws.onopen = () => {
+  console.log("Connected to server");
+};
+
+ws.onerror = (error) => {
+  console.error("WebSocket error:", error);
+};
+
 function Whiteboard() {
   const canvasRef = useRef(null);
   const contextRef = useRef(null);
 
   const [isDrawing, setIsDrawing] = useState(false);
+  const [ws, setWs] = useState(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -18,7 +34,25 @@ function Whiteboard() {
     context.strokeStyle = "black";
     context.lineWidth = 5;
     contextRef.current = context;
+
+    // Establish WebSocket connection
+    const websocket = new WebSocket("ws://localhost:8080");
+    websocket.onmessage = handleReceiveDrawingData;
+    setWs(websocket);
   }, []);
+
+  const handleReceiveDrawingData = (event) => {
+    const dataUrl = event.data;
+    drawImageFromDataUrl(dataUrl);
+  };
+
+  const drawImageFromDataUrl = (dataUrl) => {
+    const image = new Image();
+    image.onload = () => {
+      contextRef.current.drawImage(image, 0, 0);
+    };
+    image.src = dataUrl;
+  };
 
   const startDrawing = ({ nativeEvent }) => {
     const { offsetX, offsetY } = nativeEvent;
@@ -42,6 +76,14 @@ function Whiteboard() {
 
   const stopDrawing = () => {
     contextRef.current.closePath();
+    setIsDrawing(false);
+    sendDrawingData(canvasRef.current.toDataURL()); // Send drawing data to server
+  };
+
+  const sendDrawingData = (dataUrl) => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(dataUrl);
+    }
     setIsDrawing(false);
   };
 
