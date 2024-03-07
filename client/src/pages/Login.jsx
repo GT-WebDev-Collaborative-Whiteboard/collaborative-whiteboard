@@ -1,5 +1,5 @@
 import React from 'react';
-import '../styles/login.css';
+// import '../styles/login.css';
 
 function Login() {
   return (
@@ -8,8 +8,14 @@ function Login() {
         <Header />
         <div className="h-2 bg-gray-200 my-6 rounded"></div>
         <div className="flex justify-around">
-          <button className="btn-secondary">Login</button>
-          <button className="btn-secondary">Sign-Up</button>
+          <button className="btn-secondary" onClick={() => {
+	          slider.classList.remove("moveslider");
+	          formSection.classList.remove("form-section-move");
+          }}>Login</button>
+          <button className="btn-secondary" onClick={() => {
+	          slider.classList.add("moveslider");
+	          formSection.classList.add("form-section-move");
+          }}>Sign-Up</button>
         </div>
         <div className="flex">
           <div className="w-1/2 p-4">
