@@ -1,11 +1,10 @@
-import { useEffect, useRef, useState} from 'react';
-
+import { useEffect, useMemo, useRef, useState} from 'react';
 function Whiteboard() {
   const canvasRef = useRef(null);
   const contextRef = useRef(null);
 
   const [isDrawing, setIsDrawing] = useState(false);
-  const [ws, setWs] = useState(null);
+  const colors = useMemo(() => ["#FCA5A5", "#FDE047", "#93C5FD", "#86EFAC", "#000000"], [])
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -20,13 +19,7 @@ function Whiteboard() {
     context.strokeStyle = "black";
     context.lineWidth = 5;
     contextRef.current = context;
-
-     // Establish WebSocket connection
-     const websocket = new WebSocket('ws://localhost:8080');
-     websocket.onmessage = handleReceiveDrawingData;
-     setWs(websocket);
- 
-  }, []);
+  }, [colors]);
 
   const handleReceiveDrawingData = (event) => {
     const dataUrl = event.data;
@@ -69,6 +62,7 @@ function Whiteboard() {
     setIsDrawing(false)
     sendDrawingData(canvasRef.current.toDataURL()); // Send drawing data to server
   };
+
   
   const sendDrawingData = dataUrl => {
     if (ws && ws.readyState === WebSocket.OPEN) {
@@ -85,17 +79,23 @@ function Whiteboard() {
 
   };
 
-  const closeConnection = () => {
-    if (ws.readyState === WebSocket.OPEN) {
-      ws.close();
-   }
-  };
+    const setColor = color => {
+      contextRef.current.strokeStyle = color;
+    }
+
+    const saveImageToLocal = (event) => {
+      let link = event.currentTarget;
+      link.setAttribute('download', 'canvas.png');
+      let image = canvasRef.current.toDataURL('image/png');
+      link.setAttribute('href', image);
+    }
+
 
   return (
     <>
     <div>
-      <p className ='text-pink-500'>Whiteboard page</p>
-      <canvas className="container py-2 px-2 mx-auto border-2 border-l-gray-500" 
+      <h1 className ='text-xl font-bold text-center'>Whiteboard page</h1>
+      <canvas
       ref={canvasRef}
       onMouseDown={startDrawing}
       onMouseMove={draw}
@@ -103,24 +103,39 @@ function Whiteboard() {
       onMouseLeave={stopDrawing}>
       </canvas>
     </div>
-    <div>
-      <button className ="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
-      onClick={setToDraw}
-      >
-        Pen
-      </button>
-      <button className=
-      "bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
-        onClick={setToErase}
-      >
-        Erase
-      </button>
-      <button className=
-      "bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
-        onClick={closeConnection}>
-        Close
-      </button>
-
+    <div className='container flex justify-center items-center'>
+      <ul className="flex">
+        <li className='mr-6'>
+          <button className ="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+          onClick={setToDraw}>
+            Pen
+          </button>
+        </li>
+        <li className='mr-6'>
+          <button className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+          onClick={setToErase}>
+            Erase
+          </button>
+      </li>
+      <li className='mr-6'>
+      <button onClick={() => setColor(colors[4])} className="bg-black py-4 px-4 w-4 h-4 rounded-full"> </button>
+      </li>
+      <li className='mr-6'>
+      <button onClick={() => setColor(colors[0])} className="bg-red-300 py-4 px-4 w-4 h-4 rounded-full"> </button>
+      </li>
+      <li className='mr-6'>
+      <button onClick={() => setColor(colors[1])} className="bg-yellow-300 py-4 px-4 w-4 h-4 rounded-full"> </button>
+      </li>
+      <li className='mr-6'>
+      <button onClick={() => setColor(colors[2])} className="bg-blue-300 py-4 px-4 w-4 h-4 rounded-full"> </button>
+      </li>
+      <li className='mr-6'>
+      <button onClick={() => setColor(colors[3])} className="bg-green-300 py-4 px-4 w-4 h-4 rounded-full"> </button>
+      </li>
+      <li className='mr-6'>
+      <a id="download_image_link" href="download_link" onClick={saveImageToLocal} className='text-gray-900 underline'> export as image </a>
+      </li>
+      </ul>
     </div>
     </>
   )
