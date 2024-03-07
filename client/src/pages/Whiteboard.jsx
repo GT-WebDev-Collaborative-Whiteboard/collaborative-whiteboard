@@ -1,20 +1,5 @@
 import { useEffect, useRef, useState} from 'react';
 
-const ws = new WebSocket('ws://localhost:8080');
-
-ws.onmessage = (event) => {
-  console.log(event.data);
-};
-
-ws.onopen = () => {
-  console.log("Connected to server");
-};
-
-ws.onerror = error => {
-  console.error("WebSocket error:", error);
-};
-
-
 function Whiteboard() {
   const canvasRef = useRef(null);
   const contextRef = useRef(null);
@@ -45,15 +30,17 @@ function Whiteboard() {
 
   const handleReceiveDrawingData = (event) => {
     const dataUrl = event.data;
+    // console.log(dataUrl);
     drawImageFromDataUrl(dataUrl);
   };
 
-  const drawImageFromDataUrl = (dataUrl) => {
+  const drawImageFromDataUrl = async (dataUrl) => {
     const image = new Image();
     image.onload = () => {
       contextRef.current.drawImage(image, 0, 0);
     };
-    image.src = dataUrl;
+    image.src = await dataUrl.text();
+    console.log("url", image.src);
   };
 
   const startDrawing = ({nativeEvent}) => {
@@ -98,6 +85,12 @@ function Whiteboard() {
 
   };
 
+  const closeConnection = () => {
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.close();
+   }
+  };
+
   return (
     <>
     <div>
@@ -121,6 +114,11 @@ function Whiteboard() {
         onClick={setToErase}
       >
         Erase
+      </button>
+      <button className=
+      "bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+        onClick={closeConnection}>
+        Close
       </button>
 
     </div>
