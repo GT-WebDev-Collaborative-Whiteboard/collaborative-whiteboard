@@ -88,7 +88,6 @@ function Whiteboard() {
   const closeConnection = () => {
     if (ws.readyState === WebSocket.OPEN) {
       ws.close();
-      window.close();
    }
   };
 
