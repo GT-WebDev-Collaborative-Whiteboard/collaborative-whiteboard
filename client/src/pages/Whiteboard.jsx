@@ -85,6 +85,13 @@ function Whiteboard() {
 
   };
 
+  const closeConnection = () => {
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.close();
+      window.close();
+   }
+  };
+
   return (
     <>
     <div>
@@ -108,6 +115,11 @@ function Whiteboard() {
         onClick={setToErase}
       >
         Erase
+      </button>
+      <button className=
+      "bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+        onClick={closeConnection}>
+        Close
       </button>
 
     </div>
