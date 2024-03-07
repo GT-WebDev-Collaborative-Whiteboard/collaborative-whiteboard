@@ -1,9 +1,13 @@
+import Navbar from "../components/navbar.jsx";
+import BackgroundVideo from "../components/dashVideo.jsx";
+
 function Dashboard() {
   return (
     <>
-      <p>Dashboard page</p>
+      <Navbar />
+      <BackgroundVideo />
     </>
-  )
-};
+  );
+}
 
 export default Dashboard;
