@@ -1,11 +1,9 @@
-import Navbar from "../components/navbar.jsx";
-import BackgroundVideo from "../components/dashVideo.jsx";
+
 
 function Dashboard() {
   return (
     <>
-      <Navbar />
-      <BackgroundVideo />
+      <p>Test home</p>
     </>
   );
 }
