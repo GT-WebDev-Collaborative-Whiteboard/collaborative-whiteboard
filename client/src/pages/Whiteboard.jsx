@@ -42,21 +42,6 @@ function Whiteboard() {
     });
   }, [colors]);
 
-<<<<<<< HEAD
-  const handleReceiveDrawingData = (event) => {
-    const dataUrl = event.data;
-    // console.log(dataUrl);
-    drawImageFromDataUrl(dataUrl);
-  };
-
-  const drawImageFromDataUrl = async (dataUrl) => {
-    const image = new Image();
-    image.onload = () => {
-      contextRef.current.drawImage(image, 0, 0);
-    };
-    image.src = await dataUrl.text();
-    console.log("url", image.src);
-=======
   const drawOnWhiteboard = (x, y, color) => {
     contextRef.current.strokeStyle = color;
     contextRef.current.beginPath();
@@ -64,7 +49,6 @@ function Whiteboard() {
     contextRef.current.lineTo(x, y);
     contextRef.current.stroke();
     contextRef.current.closePath();
->>>>>>> d73a69a (Fix #2)
   };
 
   const startDrawing = ({nativeEvent}) => {
@@ -90,16 +74,9 @@ function Whiteboard() {
   const stopDrawing = () => {
     contextRef.current.closePath();
     setIsDrawing(false)
-    sendDrawingData(canvasRef.current.toDataURL()); // Send drawing data to server
   };
 
   
-  const sendDrawingData = dataUrl => {
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(dataUrl);
-    }
-  };
-
   const setToDraw = () => {
     contextRef.current.globalCompositeOperation = 'source-over';
   };
