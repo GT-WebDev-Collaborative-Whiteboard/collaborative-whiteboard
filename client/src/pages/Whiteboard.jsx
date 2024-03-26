@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState} from 'react';
 function Whiteboard() {
   const canvasRef = useRef(null);
   const contextRef = useRef(null);
+  const socketRef = useRef(null); // Ref for WebSocket connection
+  const drawingDataRef = useRef(null); // Ref for storing drawing data
 
   const [isDrawing, setIsDrawing] = useState(false);
   const colors = useMemo(() => ["#FCA5A5", "#FDE047", "#93C5FD", "#86EFAC", "#000000"], [])
@@ -19,8 +21,28 @@ function Whiteboard() {
     context.strokeStyle = "black";
     context.lineWidth = 5;
     contextRef.current = context;
+
+    // Connect to WebSocket server
+    const socket = new WebSocket('ws://localhost:8080');
+    socketRef.current = socket;
+
+    socket.addEventListener('open', () => {
+      console.log('WebSocket connected');
+    });
+
+    socket.addEventListener('message', (event) => {
+      // Handle incoming updates and draw on the whiteboard
+      const data = JSON.parse(event.data);
+      if (data.type === 'draw') {
+        drawOnWhiteboard(data.x, data.y, data.color);
+      }
+      if (data.type === 'stop') {
+        contextRef.current.closePath();
+      }
+    });
   }, [colors]);
 
+<<<<<<< HEAD
   const handleReceiveDrawingData = (event) => {
     const dataUrl = event.data;
     // console.log(dataUrl);
@@ -34,17 +56,23 @@ function Whiteboard() {
     };
     image.src = await dataUrl.text();
     console.log("url", image.src);
+=======
+  const drawOnWhiteboard = (x, y, color) => {
+    contextRef.current.strokeStyle = color;
+    contextRef.current.beginPath();
+    contextRef.current.moveTo(x, y);
+    contextRef.current.lineTo(x, y);
+    contextRef.current.stroke();
+    contextRef.current.closePath();
+>>>>>>> d73a69a (Fix #2)
   };
 
   const startDrawing = ({nativeEvent}) => {
     const {offsetX, offsetY} =  nativeEvent;
-    contextRef.current.beginPath();
-    contextRef.current.moveTo(offsetX, offsetY);
     contextRef.current.lineTo(offsetX, offsetY);
     contextRef.current.stroke();
     setIsDrawing(true);
     nativeEvent.preventDefault();
-
   };
 
   const draw = ({nativeEvent}) => {
@@ -52,9 +80,11 @@ function Whiteboard() {
       return;
     }
     const {offsetX, offsetY} =  nativeEvent;
-    contextRef.current.lineTo(offsetX, offsetY);
-    contextRef.current.stroke();
+    drawOnWhiteboard(offsetX, offsetY, contextRef.current.strokeStyle);
     nativeEvent.preventDefault();
+    // Send drawing data to server
+    const data = { type: 'draw', x: offsetX, y: offsetY, color: contextRef.current.strokeStyle };
+    socketRef.current.send(JSON.stringify(data));
   };
 
   const stopDrawing = () => {
