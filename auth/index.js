@@ -40,6 +40,7 @@ const registeredClients = [
 const CODE_LIFE_SPAN = 60000; // 60 seconds
 const TOKEN_LIFE_SPAN = 3600000
 
+// get the authorization code
 app.post('/auth', async (req, res) => {
   const {
     response_type,

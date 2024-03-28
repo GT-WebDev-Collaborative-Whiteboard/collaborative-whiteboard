@@ -11,8 +11,7 @@ function Login() {
       password: "testpassword"
     }
     const url = 'http://localhost:7766/auth?' + new URLSearchParams(client);
-    // console.log(url);
-    // console.log(userData);
+    
     let data = await fetch(url, {
       method: "POST",
       mode: "cors",
@@ -22,7 +21,6 @@ function Login() {
       body: JSON.stringify(userData),
     })
     data = await data.text();
-    // console.log(data);
 
     const tokenBody = {
       grant_type: "authorization_code",
@@ -42,17 +40,17 @@ function Login() {
     });
 
     token = await token.text();
-    console.log(token);
 
-    let user = await fetch('http://localhost:7766/verifytoken?' + new URLSearchParams({ token: token }), {
-      method: "GET",
-      mode: "cors",
-      header: {
-        "Content-Type": "application/json"
-      },
-    })
+    localStorage.setItem("collab-whiteboard", token);
+    // let user = await fetch('http://localhost:7766/verifytoken?' + new URLSearchParams({ token: token }), {
+    //   method: "GET",
+    //   mode: "cors",
+    //   header: {
+    //     "Content-Type": "application/json"
+    //   },
+    // })
 
-    console.log(await user.text());
+    // console.log(await user.text());
   }
   return (
     <>
