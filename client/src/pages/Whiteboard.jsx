@@ -23,7 +23,7 @@ function Whiteboard() {
     contextRef.current = context;
 
     // Connect to WebSocket server
-    const socket = new WebSocket('ws://localhost:8080');
+    const socket = new WebSocket('ws://localhost:8080', ["testprotocol"]);
     socketRef.current = socket;
 
     socket.addEventListener('open', () => {

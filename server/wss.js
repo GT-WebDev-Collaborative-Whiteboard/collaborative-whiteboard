@@ -1,21 +1,11 @@
 import WebSocket, { WebSocketServer } from "ws";
+import { createServer } from 'http';
 
-const wss = new WebSocketServer({ port: 8080 });
+const server = createServer();
+const wss = new WebSocketServer({ noServer: true });
 
 const clients = new Set(); // Use Set to store connected clients
 
-<<<<<<< HEAD
-wss.on('connection', function connection(ws) {
-  ws.on('message', function incoming(data) {
-    console.log(data.toString());
-    wss.clients.forEach(function each(client) {
-      if (client !== ws && client.readyState === WebSocket.OPEN) {
-        client.send(data);
-      }
-    })
-  })
-})
-=======
 wss.on('connection', (ws) => {
   console.log('New connection established');
   ws.on('error', console.error);
@@ -36,4 +26,12 @@ wss.on('connection', (ws) => {
     clients.delete(ws); // Remove disconnected client from the set
   });
 });
->>>>>>> d73a69a (Fix #2)
+
+server.on('upgrade', (req, socket, head) => {
+  socket.on('error', console.error);
+
+  const [token, whiteboard] = req.headers['sec-websocket-protocol'];
+  
+});
+
+server.listen(8080);

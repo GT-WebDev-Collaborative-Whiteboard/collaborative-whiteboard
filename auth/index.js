@@ -233,6 +233,11 @@ app.get("/verifytoken", async (req, res) => {
   return res.status(200).send(access_token.user);
 });
 
+// given a token and a whiteboard, return whether or not the token is valid to access the whiteboard
+app.get("/verifytokenwhiteboard", async (req, res) => {
+
+});
+
 app.listen(PORT, () => {
   console.log(`auth server listening on port ${PORT}`);
 });
