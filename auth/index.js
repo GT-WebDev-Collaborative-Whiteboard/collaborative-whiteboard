@@ -200,7 +200,15 @@ app.get('/test', (req, res) => {
 // receive access token from resource server, return user is access token is valid, otherwise return status 400
 app.get("/verifytoken", async (req, res) => {
   let { token } = req.query;
+  const response = await getUser(token);
+  if (typeof response === "string") {
+    return res.status(400).send(response);
+  }
+  const { user } = response;
+  return res.status(200).send(user);
+});
 
+async function getUser(token) {
   try {
     token = JSON.parse(new fernet.Token({
       secret,
@@ -208,7 +216,7 @@ app.get("/verifytoken", async (req, res) => {
       ttl: 0,
     }).decode());
   } catch (e) {
-    return res.status(400).send("Unintelligible token");
+    return "Unintelligible token";
   }
 
   const {
@@ -220,22 +228,38 @@ app.get("/verifytoken", async (req, res) => {
 
   // check validity
   if (!access_token || !token_type || !expires_in || !iss) {
-    return res.status(400).send("Invalid request");
+    return "Invalid request";
   }
 
   if (iss !== process.env.AUTH_ISS) {
-    return res.status(400).send("Invalid issuer");
+    return "Invalid issuer";
   }
 
   if (expires_in < Date.now()) {
-    return res.status(400).send("Token expired");
+    return "Token expired";
   }
-  return res.status(200).send(access_token.user);
-});
+  return { user: access_token.user };
+}
 
 // given a token and a whiteboard, return whether or not the token is valid to access the whiteboard
 app.get("/verifytokenwhiteboard", async (req, res) => {
+  const {
+    token,
+    whiteboard
+  } = req.query;
 
+  if (!whiteboard) {
+    return res.status(400).send("Invalid request");
+  }
+
+  const response = await getUser(token);
+  if (typeof response === "string") {
+    return res.status(400).send(response);
+  }
+
+  const { user } = response;
+  
+  // check if whiteboard is public and if user has access to it
 });
 
 app.listen(PORT, () => {
