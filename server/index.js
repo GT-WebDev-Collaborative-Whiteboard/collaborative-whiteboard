@@ -11,6 +11,10 @@ app.get("/", (req, res) => {
   return res.send("testing");
 });
 
+//Create the Mongo Model for the user.
+//Create functions to handle the User model (e.g. createUser, deleteUser, updateUser(new user data))
+
+
 // app.get("/", (req, res) => {
 //   const sampleData = {
 //     username: "username",

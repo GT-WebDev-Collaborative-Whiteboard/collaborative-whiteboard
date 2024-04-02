@@ -5,3 +5,8 @@ const connectDB = (url) => {
 }
 
 export default connectDB;
+
+//exports mongoDB using mongoose
+
+
+
