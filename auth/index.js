@@ -4,7 +4,7 @@ import express from 'express';
 import 'dotenv/config';
 import axios from 'axios';
 import cors from 'cors';
-import { authenticateUser } from './database/actions/user-handler.js';
+import { authenticateUser, registerUser } from './database/actions/user-handler.js';
 import bodyParser from 'body-parser';
 
 const app = express();
@@ -260,6 +260,39 @@ app.get("/verifytokenwhiteboard", async (req, res) => {
   const { user } = response;
   
   // check if whiteboard is public and if user has access to it
+});
+
+app.post("/registeruser", async (req, res) => {
+  const {
+    username,
+    password
+  } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).send("Invalid request");
+  }
+
+  // hash both username and password
+  let encryptedToken = new fernet.Token({
+    secret
+  });
+
+  encryptedToken.encode(username);
+  const hashedUsername = encryptedToken.token;
+
+  encryptedToken = new fernet.Token({
+    secret
+  });
+
+  encryptedToken.encode(password);
+  const hashedPassword = encryptedToken.token;
+
+  // register user if valid
+  if (await registerUser(hashedUsername, hashedPassword, process.env.AUTH_MONGO_URI)) {
+    return res.status(200).send("User successfully created");
+  } else {
+    return res.status(400).send("User already exists");
+  }
 });
 
 app.listen(PORT, () => {
