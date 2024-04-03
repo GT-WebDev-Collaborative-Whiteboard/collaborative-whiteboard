@@ -1,18 +1,4 @@
-import { useEffect, useRef, useState } from "react";
-
-const ws = new WebSocket("ws://localhost:8080");
-
-ws.onmessage = (event) => {
-  console.log(event.data);
-};
-
-ws.onopen = () => {
-  console.log("Connected to server");
-};
-
-ws.onerror = (error) => {
-  console.error("WebSocket error:", error);
-};
+import { useEffect, useRef, useState} from 'react';
 
 function Whiteboard() {
   const canvasRef = useRef(null);
@@ -35,27 +21,30 @@ function Whiteboard() {
     context.lineWidth = 5;
     contextRef.current = context;
 
-    // Establish WebSocket connection
-    const websocket = new WebSocket("ws://localhost:8080");
-    websocket.onmessage = handleReceiveDrawingData;
-    setWs(websocket);
+     // Establish WebSocket connection
+     const websocket = new WebSocket('ws://localhost:8080');
+     websocket.onmessage = handleReceiveDrawingData;
+     setWs(websocket);
+
   }, []);
 
   const handleReceiveDrawingData = (event) => {
     const dataUrl = event.data;
+    // console.log(dataUrl);
     drawImageFromDataUrl(dataUrl);
   };
 
-  const drawImageFromDataUrl = (dataUrl) => {
+  const drawImageFromDataUrl = async (dataUrl) => {
     const image = new Image();
     image.onload = () => {
       contextRef.current.drawImage(image, 0, 0);
     };
-    image.src = dataUrl;
+    image.src = await dataUrl.text();
+    console.log("url", image.src);
   };
 
-  const startDrawing = ({ nativeEvent }) => {
-    const { offsetX, offsetY } = nativeEvent;
+  const startDrawing = ({nativeEvent}) => {
+    const {offsetX, offsetY} =  nativeEvent;
     contextRef.current.beginPath();
     contextRef.current.moveTo(offsetX, offsetY);
     contextRef.current.lineTo(offsetX, offsetY);
@@ -76,15 +65,14 @@ function Whiteboard() {
 
   const stopDrawing = () => {
     contextRef.current.closePath();
-    setIsDrawing(false);
+    setIsDrawing(false)
     sendDrawingData(canvasRef.current.toDataURL()); // Send drawing data to server
   };
-
-  const sendDrawingData = (dataUrl) => {
+  
+  const sendDrawingData = dataUrl => {
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(dataUrl);
     }
-    setIsDrawing(false);
   };
 
   const setToDraw = () => {
@@ -95,35 +83,45 @@ function Whiteboard() {
     contextRef.current.globalCompositeOperation = "destination-out";
   };
 
+  const closeConnection = () => {
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.close();
+   }
+  };
+
   return (
     <>
-      <div>
-        <p className="text-pink-500">Whiteboard page</p>
-        <canvas
-          className="container py-2 px-2 mx-auto border-2 border-l-gray-500"
-          ref={canvasRef}
-          onMouseDown={startDrawing}
-          onMouseMove={draw}
-          onMouseUp={stopDrawing}
-          onMouseLeave={stopDrawing}
-        ></canvas>
-      </div>
-      <div>
-        <button
-          className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
-          onClick={setToDraw}
-        >
-          Pen
-        </button>
-        <button
-          className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
-          onClick={setToErase}
-        >
-          Erase
-        </button>
-      </div>
+    <div>
+      <p className ='text-pink-500'>Whiteboard page</p>
+      <canvas className="container py-2 px-2 mx-auto border-2 border-l-gray-500" 
+      ref={canvasRef}
+      onMouseDown={startDrawing}
+      onMouseMove={draw}
+      onMouseUp={stopDrawing}
+      onMouseLeave={stopDrawing}>
+      </canvas>
+    </div>
+    <div>
+      <button className ="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+      onClick={setToDraw}
+      >
+        Pen
+      </button>
+      <button className=
+      "bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+        onClick={setToErase}
+      >
+        Erase
+      </button>
+      <button className=
+      "bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+        onClick={closeConnection}>
+        Close
+      </button>
+
+    </div>
     </>
-  );
+  )
 }
 
 export default Whiteboard;
