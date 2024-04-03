@@ -15,7 +15,7 @@ function Whiteboard() {
     canvas.style.height = `${window.innerHeight}px`;
 
     const context = canvas.getContext("2d");
-    context.scale(2,2)
+    context.scale(2, 2);
     context.lineCap = "round";
     context.strokeStyle = "black";
     context.lineWidth = 5;
@@ -25,7 +25,7 @@ function Whiteboard() {
      const websocket = new WebSocket('ws://localhost:8080');
      websocket.onmessage = handleReceiveDrawingData;
      setWs(websocket);
- 
+
   }, []);
 
   const handleReceiveDrawingData = (event) => {
@@ -51,14 +51,13 @@ function Whiteboard() {
     contextRef.current.stroke();
     setIsDrawing(true);
     nativeEvent.preventDefault();
-
   };
 
-  const draw = ({nativeEvent}) => {
-    if(!isDrawing) {
+  const draw = ({ nativeEvent }) => {
+    if (!isDrawing) {
       return;
     }
-    const {offsetX, offsetY} =  nativeEvent;
+    const { offsetX, offsetY } = nativeEvent;
     contextRef.current.lineTo(offsetX, offsetY);
     contextRef.current.stroke();
     nativeEvent.preventDefault();
@@ -77,12 +76,11 @@ function Whiteboard() {
   };
 
   const setToDraw = () => {
-    contextRef.current.globalCompositeOperation = 'source-over';
+    contextRef.current.globalCompositeOperation = "source-over";
   };
 
   const setToErase = () => {
-    contextRef.current.globalCompositeOperation = 'destination-out';
-
+    contextRef.current.globalCompositeOperation = "destination-out";
   };
 
   const closeConnection = () => {

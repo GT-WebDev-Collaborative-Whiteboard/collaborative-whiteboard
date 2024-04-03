@@ -1,9 +1,11 @@
+
+
 function Dashboard() {
   return (
     <>
-      <p>Dashboard page</p>
+      <p>Test home</p>
     </>
-  )
-};
+  );
+}
 
 export default Dashboard;
