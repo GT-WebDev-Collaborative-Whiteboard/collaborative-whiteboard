@@ -1,55 +1,31 @@
+// index.js
 import express from 'express';
 import 'dotenv/config';
 import connectDB from './database/connect.js';
 import bodyParser from 'body-parser';
+import { createUser } from './database/actions/userActions.js';
 
 const app = express();
 
 app.use(bodyParser.json());
 
+// Routing
 app.get("/", (req, res) => {
-  return res.send("testing");
+  return res.send("Server is running...");
 });
 
-//Create the Mongo Model for the user.
-//Create functions to handle the User model (e.g. createUser, deleteUser, updateUser(new user data))
-
-
-// app.get("/", (req, res) => {
-//   const sampleData = {
-//     username: "username",
-//     data: "whatever",
-//   };
-
-//   connectDB(url);
-
-//   const newDBEntry = new userModel({sampleData});
-//   newDBEntry.save();
-//   res.send("testing");
-// });
-
-// function getWhiteboardsFromUser(user) {
-//   connectDB(process.env.MONGO_URI);
-
-//   userModel.find({user})
-// }
-
-// /*
-//   {
-//     user: username,
-//     password: password,
-//     whiteboards: [whiteboard names]
-//   }
-// */
-// app.post("/registerUser", (req, res) => {
-//   req.body;
-//   req.query;
-//   res.status();
-//   res.send();
-// });
+// Register Route
+app.post("/registerUser", async (req, res) => {
+  try {
+    const newUser = await createUser(req.body);
+    res.status(201).json(newUser);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 
 async function start() {
-  const port = process.env.PORT;
+  const port = process.env.PORT || 3000;
   try {
     await connectDB(process.env.MONGO_URI);
     app.listen(port, () =>
