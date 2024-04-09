@@ -9,22 +9,22 @@ const LoginSignupForm = () => {
   const [signupMessage, setSignupMessage] = useState('');
   const [loginMessage, setLoginMessage] = useState('');
 
-  const handleSignupClick = () => {
-    setIsSignup(true);
-    setLoginMessage('');
+  const handleLoginClick = () => {
+    setSignupMessage('');
+    setIsSignup(false);
   };
 
-  const handleLoginClick = () => {
-    setIsSignup(false);
-    setSignupMessage('');
+  const handleSignupClick = () => {
+    setLoginMessage('');
+    setIsSignup(true);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     try {
       if (isSignup) {
-        setSignupMessage('Sign-Up Successful!');
         setLoginMessage('');
+        setSignupMessage('Sign-Up Successful!');
       } else {
         setLoginMessage('Login Successful!');
         setSignupMessage('');
@@ -66,69 +66,61 @@ const LoginSignupForm = () => {
         {signupMessage && <p className="text-green-500 mb-4 text-center">{signupMessage}</p>}
 
         <form onSubmit={handleSubmit}>
-          {!isSignup && (
-            <div className="flex flex-col items-center">
-              <div className="flex flex-col gap-6 w-full">
+          <div className="flex flex-col items-center h-[280px] transition-all duration-300">
+            {!isSignup && (
+              <div className="flex flex-col gap-4 w-full">
                 <input
                   type="email"
                   placeholder="Email"
-                  className="px-6 py-4 bg-gray-200 rounded-full outline-none text-lg font-medium font-poppins"
+                  className="px-4 py-3 bg-gray-200 rounded-full outline-none text-base font-medium font-poppins"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
                 <input
                   type="password"
                   placeholder="Password"
-                  className="px-6 py-4 bg-gray-200 rounded-full outline-none text-lg font-medium font-poppins"
+                  className="px-4 py-3 bg-gray-200 rounded-full outline-none text-base font-medium font-poppins"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
-              <button
-                type="submit"
-                className="mt-8 px-8 py-4 bg-green-400 text-white rounded-full hover:bg-green-500 text-xl"
-              >
-                Login
-              </button>
-            </div>
-          )}
+            )}
 
-          {isSignup && (
-            <div className="flex flex-col items-center">
-              <div className="flex flex-col gap-6 w-full">
+            {isSignup && (
+              <div className="flex flex-col gap-4 w-full transition-all duration-300">
                 <input
                   type="text"
                   placeholder="Enter your name"
-                  className="px-6 py-4 bg-gray-200 rounded-full outline-none text-lg"
+                  className="px-4 py-3 bg-gray-200 rounded-full outline-none text-base"
                 />
                 <input
                   type="email"
                   placeholder="Email"
-                  className="px-6 py-4 bg-gray-200 rounded-full outline-none text-lg"
+                  className="px-4 py-3 bg-gray-200 rounded-full outline-none text-base"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
                 <input
                   type="password"
                   placeholder="Password"
-                  className="px-6 py-4 bg-gray-200 rounded-full outline-none text-lg"
+                  className="px-4 py-3 bg-gray-200 rounded-full outline-none text-base"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
                 <input
                   type="password"
                   placeholder="Confirm password"
-                  className="px-6 py-4 bg-gray-200 rounded-full outline-none text-lg"
+                  className="px-4 py-3 bg-gray-200 rounded-full outline-none text-base"
                 />
               </div>
-              <button
-                type="submit"
-                className="mt-8 px-8 py-4 bg-green-400 text-white rounded-full hover:bg-green-500 text-xl"
-              >
-                Sign-Up
-              </button>
-            </div>
-          )}
+            )}
+            <button
+              type="submit"
+              className="mt-6 px-6 py-3 bg-green-400 text-white rounded-full hover:bg-green-500 text-base"
+            >
+              {isSignup ? 'Sign-Up' : 'Login'}
+            </button>
+          </div>
         </form>
       </div>
     </div>
