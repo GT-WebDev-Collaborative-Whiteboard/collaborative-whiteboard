@@ -3,6 +3,9 @@ import { FaEraser } from "react-icons/fa6";
 import { IconContext } from "react-icons";
 import { FaPencilAlt } from "react-icons/fa";
 import { FaDownload } from "react-icons/fa";
+import { FaPlus } from "react-icons/fa";
+import { FaMinus } from "react-icons/fa";
+
 
 
 function Whiteboard() {
@@ -10,6 +13,7 @@ function Whiteboard() {
   const contextRef = useRef(null);
 
   const [isDrawing, setIsDrawing] = useState(false);
+  const [lineSize, changeLineSize] = useState(5);
 
   const colors = useMemo(() => ["#FCA5A5", "#FDE047", "#93C5FD", "#86EFAC", "#000000"], [])
 
@@ -70,6 +74,24 @@ function Whiteboard() {
       contextRef.current.strokeStyle = color;
     }
 
+    const increaseLineSize = () => {
+      if (contextRef.current.lineWidth < 50) {
+        contextRef.current.lineWidth++;
+        changeLineSize(contextRef.current.lineWidth);
+      } else {
+        return;
+      }
+    }
+
+    const decreaseLineSize = () => {
+      if (contextRef.current.lineWidth > 0) {
+          contextRef.current.lineWidth--;
+          changeLineSize(contextRef.current.lineWidth);
+      } else {
+        return;
+      }
+    }
+
     const saveImageToLocal = (event) => {
       let link = event.currentTarget;
       link.setAttribute('download', 'canvas.png');
@@ -89,6 +111,7 @@ function Whiteboard() {
       onMouseUp={stopDrawing}
       onMouseLeave={stopDrawing}>
       </canvas>
+   
     <div className='flex justify-center py-4 bg-white sm: shadow-md md:shadow-lg lg: shadow-2xl rounded-full mx-3 my-5'>
       <ul className="flex items-center">
         <li className='mx-3'>
@@ -106,6 +129,29 @@ function Whiteboard() {
           <FaEraser/>
           </IconContext.Provider>
           </button>
+      </li>
+      <li>
+        <p>
+          stroke size:   {lineSize}
+        </p>
+      </li>
+      <li className='ml-1 mr-1'>
+        <button className='"bg-white hover:bg-gray-200  text-gray-800 font-semibold  py-3 px-3 rounded-full' 
+        onClick={() => decreaseLineSize()}> 
+          <IconContext.Provider value={{ size:20}}> 
+          <FaMinus/>
+          </IconContext.Provider>
+        
+        </button>
+      </li>
+      <li className='ml-1 mr-1'>
+        <button className='"bg-white hover:bg-gray-200  text-gray-800 font-semibold  py-3 px-3 rounded-full' 
+        onClick={() => increaseLineSize()}> 
+          <IconContext.Provider value={{ size:20}}> 
+          <FaPlus/>
+          </IconContext.Provider>
+        
+        </button>
       </li>
       <li className='mx-3'>
       <button onClick={() => setColor(colors[4])} className="bg-black py-4 px-4 w-5 h-5 rounded-full"> </button>
@@ -130,7 +176,9 @@ function Whiteboard() {
       </a>
       </li>
       </ul>
+     
     </div>
+    
     </div>
     </>
   )
