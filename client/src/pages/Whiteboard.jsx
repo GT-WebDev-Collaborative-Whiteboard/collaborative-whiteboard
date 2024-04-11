@@ -11,6 +11,8 @@ import { FaMinus } from "react-icons/fa";
 function Whiteboard() {
   const canvasRef = useRef(null);
   const contextRef = useRef(null);
+  const socketRef = useRef(null); // Ref for WebSocket connection
+  const drawingDataRef = useRef(null); // Ref for storing drawing data
 
   const [isDrawing, setIsDrawing] = useState(false);
   const [lineSize, changeLineSize] = useState(5);
@@ -33,27 +35,38 @@ function Whiteboard() {
     context.lineWidth = 5;
     contextRef.current = context;
 
-     // Establish WebSocket connection
-     const websocket = new WebSocket('ws://localhost:8080');
-     websocket.onmessage = handleReceiveDrawingData;
-     setWs(websocket);
+    // Connect to WebSocket server
+    const socket = new WebSocket('ws://localhost:8080');
+    socketRef.current = socket;
 
-  }, [colors]);
+    socket.addEventListener('open', () => {
+      console.log('WebSocket connected');
+    });
 
-  const handleReceiveDrawingData = (event) => {
-    const dataUrl = event.data;
-    // console.log(dataUrl);
-    drawImageFromDataUrl(dataUrl);
-  };
+    socket.addEventListener('message', (event) => {
+      // Handle incoming updates and draw on the whiteboard
+      const data = JSON.parse(event.data);
+      if (data.type === 'start') {
+        contextRef.current.strokeStyle = data.color;
+        contextRef.current.globalCompositeOperation = data.erase;
+        contextRef.current.beginPath();
+        contextRef.current.moveTo(data.x, data.y);
+      }
+      if (data.type === 'draw') {
+        contextRef.current.lineTo(data.x, data.y);
+        contextRef.current.stroke();
+      }
+      if (data.type === 'stop') {
+        contextRef.current.closePath();
+      }
+    });
 
-  const drawImageFromDataUrl = async (dataUrl) => {
-    const image = new Image();
-    image.onload = () => {
-      contextRef.current.drawImage(image, 0, 0);
+    return () => {
+      // Cleanup function to close the WebSocket connection
+      socket.close();
+      console.log('WebSocket connection closed');
     };
-    image.src = await dataUrl.text();
-    console.log("url", image.src);
-  };
+  }, [colors]);
 
   const startDrawing = ({nativeEvent}) => {
     const {offsetX, offsetY} =  nativeEvent;
@@ -63,6 +76,8 @@ function Whiteboard() {
     contextRef.current.stroke();
     setIsDrawing(true);
     nativeEvent.preventDefault();
+    const data = { type: 'start', x: offsetX, y: offsetY, color: contextRef.current.strokeStyle, erase: contextRef.current.globalCompositeOperation };
+    socketRef.current.send(JSON.stringify(data));
   };
 
   const draw = ({ nativeEvent }) => {
@@ -73,21 +88,19 @@ function Whiteboard() {
     contextRef.current.lineTo(offsetX, offsetY);
     contextRef.current.stroke();
     nativeEvent.preventDefault();
+    // Send drawing data to server
+    const data = { type: 'draw', x: offsetX, y: offsetY, color: contextRef.current.strokeStyle };
+    socketRef.current.send(JSON.stringify(data));
   };
 
   const stopDrawing = () => {
     contextRef.current.closePath();
     setIsDrawing(false)
-    sendDrawingData(canvasRef.current.toDataURL()); // Send drawing data to server
+    const data = { type: 'stop'};
+    socketRef.current.send(JSON.stringify(data));
   };
 
   
-  const sendDrawingData = dataUrl => {
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(dataUrl);
-    }
-  };
-
   const setToDraw = () => {
     contextRef.current.globalCompositeOperation = "source-over";
   };
@@ -96,46 +109,40 @@ function Whiteboard() {
     contextRef.current.globalCompositeOperation = "destination-out";
   };
 
-  const closeConnection = () => {
-    if (ws.readyState === WebSocket.OPEN) {
-      ws.close();
-   }
-  };
+  const setColor = (color) => {
+    contextRef.current.strokeStyle = color;
+  }
 
-    const setColor = color => {
-      contextRef.current.strokeStyle = color;
+  const increaseLineSize = () => {
+    if (contextRef.current.lineWidth < 50) {
+      contextRef.current.lineWidth++;
+      changeLineSize(contextRef.current.lineWidth);
+    } else {
+      return;
     }
+  }
 
-    const increaseLineSize = () => {
-      if (contextRef.current.lineWidth < 50) {
-        contextRef.current.lineWidth++;
+  const decreaseLineSize = () => {
+    if (contextRef.current.lineWidth > 0) {
+        contextRef.current.lineWidth--;
         changeLineSize(contextRef.current.lineWidth);
-      } else {
-        return;
-      }
+    } else {
+      return;
     }
+  }
 
-    const decreaseLineSize = () => {
-      if (contextRef.current.lineWidth > 0) {
-          contextRef.current.lineWidth--;
-          changeLineSize(contextRef.current.lineWidth);
-      } else {
-        return;
-      }
-    }
-
-    const saveImageToLocal = (event) => {
-      let link = event.currentTarget;
-      link.setAttribute('download', 'canvas.png');
-      let image = canvasRef.current.toDataURL('image/png');
-      link.setAttribute('href', image);
-    }
+  const saveImageToLocal = (event) => {
+    let link = event.currentTarget;
+    link.setAttribute('download', 'canvas.png');
+    let image = canvasRef.current.toDataURL('image/png');
+    link.setAttribute('href', image);
+  }
 
 
   return (
     <>
     <div>
-      <h1 className ='text-xl font-bold text-center'>Whiteboard page</h1> 
+      <h1 className ='text-xl font-bold text-center'>Whiteboard page</h1>
       <canvas
       ref={canvasRef}
       onMouseDown={startDrawing}
