@@ -33,30 +33,38 @@ function Whiteboard() {
     socket.addEventListener('message', (event) => {
       // Handle incoming updates and draw on the whiteboard
       const data = JSON.parse(event.data);
+      if (data.type === 'start') {
+        contextRef.current.strokeStyle = data.color;
+        contextRef.current.globalCompositeOperation = data.erase;
+        contextRef.current.beginPath();
+        contextRef.current.moveTo(data.x, data.y);
+      }
       if (data.type === 'draw') {
-        drawOnWhiteboard(data.x, data.y, data.color);
+        contextRef.current.lineTo(data.x, data.y);
+        contextRef.current.stroke();
       }
       if (data.type === 'stop') {
         contextRef.current.closePath();
       }
     });
-  }, [colors]);
 
-  const drawOnWhiteboard = (x, y, color) => {
-    contextRef.current.strokeStyle = color;
-    contextRef.current.beginPath();
-    contextRef.current.moveTo(x, y);
-    contextRef.current.lineTo(x, y);
-    contextRef.current.stroke();
-    contextRef.current.closePath();
-  };
+    return () => {
+      // Cleanup function to close the WebSocket connection
+      socket.close();
+      console.log('WebSocket connection closed');
+    };
+  }, [colors]);
 
   const startDrawing = ({nativeEvent}) => {
     const {offsetX, offsetY} =  nativeEvent;
+    contextRef.current.beginPath();
+    contextRef.current.moveTo(offsetX, offsetY);
     contextRef.current.lineTo(offsetX, offsetY);
     contextRef.current.stroke();
     setIsDrawing(true);
     nativeEvent.preventDefault();
+    const data = { type: 'start', x: offsetX, y: offsetY, color: contextRef.current.strokeStyle, erase: contextRef.current.globalCompositeOperation };
+    socketRef.current.send(JSON.stringify(data));
   };
 
   const draw = ({nativeEvent}) => {
@@ -64,7 +72,8 @@ function Whiteboard() {
       return;
     }
     const {offsetX, offsetY} =  nativeEvent;
-    drawOnWhiteboard(offsetX, offsetY, contextRef.current.strokeStyle);
+    contextRef.current.lineTo(offsetX, offsetY);
+    contextRef.current.stroke();
     nativeEvent.preventDefault();
     // Send drawing data to server
     const data = { type: 'draw', x: offsetX, y: offsetY, color: contextRef.current.strokeStyle };
@@ -74,6 +83,8 @@ function Whiteboard() {
   const stopDrawing = () => {
     contextRef.current.closePath();
     setIsDrawing(false)
+    const data = { type: 'stop'};
+    socketRef.current.send(JSON.stringify(data));
   };
 
   
