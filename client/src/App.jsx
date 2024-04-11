@@ -1,6 +1,5 @@
-import { Outlet, Link} from 'react-router-dom'
-import Whiteboard from './pages/Whiteboard';
-import './App.css'
+import { Outlet, Link } from "react-router-dom";
+import "./App.css";
 
 function App() {
   return (

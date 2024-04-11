@@ -14,6 +14,7 @@ function Whiteboard() {
 
   const [isDrawing, setIsDrawing] = useState(false);
   const [lineSize, changeLineSize] = useState(5);
+  const [ws, setWs] = useState(null);
 
   const colors = useMemo(() => ["#FCA5A5", "#FDE047", "#93C5FD", "#86EFAC", "#000000"], [])
 
@@ -26,13 +27,33 @@ function Whiteboard() {
 
     //reference for the canvas object
     const context = canvas.getContext("2d");
-    context.scale(2,2);
+    context.scale(2, 2);
     context.lineCap = "round";
     context.strokeStyle = "black";
     context.lineWidth = 5;
     contextRef.current = context;
 
+     // Establish WebSocket connection
+     const websocket = new WebSocket('ws://localhost:8080');
+     websocket.onmessage = handleReceiveDrawingData;
+     setWs(websocket);
+
   }, [colors]);
+
+  const handleReceiveDrawingData = (event) => {
+    const dataUrl = event.data;
+    // console.log(dataUrl);
+    drawImageFromDataUrl(dataUrl);
+  };
+
+  const drawImageFromDataUrl = async (dataUrl) => {
+    const image = new Image();
+    image.onload = () => {
+      contextRef.current.drawImage(image, 0, 0);
+    };
+    image.src = await dataUrl.text();
+    console.log("url", image.src);
+  };
 
   const startDrawing = ({nativeEvent}) => {
     const {offsetX, offsetY} =  nativeEvent;
@@ -44,30 +65,41 @@ function Whiteboard() {
     nativeEvent.preventDefault();
   };
 
-
-  const draw = ({nativeEvent}) => {
-    if(!isDrawing) {
+  const draw = ({ nativeEvent }) => {
+    if (!isDrawing) {
       return;
     }
-    const {offsetX, offsetY} =  nativeEvent;
-      contextRef.current.lineTo(offsetX, offsetY);
-      contextRef.current.stroke();
+    const { offsetX, offsetY } = nativeEvent;
+    contextRef.current.lineTo(offsetX, offsetY);
+    contextRef.current.stroke();
     nativeEvent.preventDefault();
   };
 
   const stopDrawing = () => {
     contextRef.current.closePath();
     setIsDrawing(false)
+    sendDrawingData(canvasRef.current.toDataURL()); // Send drawing data to server
   };
 
   
+  const sendDrawingData = dataUrl => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(dataUrl);
+    }
+  };
+
   const setToDraw = () => {
-    contextRef.current.globalCompositeOperation = 'source-over';
+    contextRef.current.globalCompositeOperation = "source-over";
   };
 
   const setToErase = () => {
-    contextRef.current.globalCompositeOperation = 'destination-out';
+    contextRef.current.globalCompositeOperation = "destination-out";
+  };
 
+  const closeConnection = () => {
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.close();
+   }
   };
 
     const setColor = color => {
@@ -182,6 +214,6 @@ function Whiteboard() {
     </div>
     </>
   )
-};
+}
 
 export default Whiteboard;
