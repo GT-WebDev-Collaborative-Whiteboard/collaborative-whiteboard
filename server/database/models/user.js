@@ -4,11 +4,12 @@ const userSchema = new mongoose.Schema({
   username: {
     type: String,
     required: true,
-    unique: true,
+    unique: true
   },
   whiteboards: [{
-    type: String,
-  }],
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Whiteboard'
+  }]
 });
 
 const User = mongoose.model('User', userSchema);
