@@ -4,7 +4,7 @@ import { NewWhiteboardCard } from '../components/NewWhiteboardCard';
 function Dashboard() {
   return (
     <div className="p-10 md:p-8">
-      {/* feel free to adjust the rows dynamically */}
+        {/*      will need changes*/}
       <div className="flex justify-center mb-8">
         <div className="w-1/5 px-2">
           <NewWhiteboardCard/>
