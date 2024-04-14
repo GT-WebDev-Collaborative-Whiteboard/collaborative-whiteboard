@@ -14,7 +14,7 @@ import Whiteboard from './pages/Whiteboard.jsx'
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <App />,
+    // element: <App />,
     children: [
       {
         index: true,
