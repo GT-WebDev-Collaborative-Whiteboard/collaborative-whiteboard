@@ -47,6 +47,7 @@ function Whiteboard() {
       // Handle incoming updates and draw on the whiteboard
       const data = JSON.parse(event.data);
       if (data.type === 'start') {
+        contextRef.current.lineWidth = data.width;
         contextRef.current.strokeStyle = data.color;
         contextRef.current.globalCompositeOperation = data.erase;
         contextRef.current.beginPath();
@@ -76,7 +77,7 @@ function Whiteboard() {
     contextRef.current.stroke();
     setIsDrawing(true);
     nativeEvent.preventDefault();
-    const data = { type: 'start', x: offsetX, y: offsetY, color: contextRef.current.strokeStyle, erase: contextRef.current.globalCompositeOperation };
+    const data = { type: 'start', x: offsetX, y: offsetY, color: contextRef.current.strokeStyle, erase: contextRef.current.globalCompositeOperation, width: contextRef.current.lineWidth };
     socketRef.current.send(JSON.stringify(data));
   };
 
