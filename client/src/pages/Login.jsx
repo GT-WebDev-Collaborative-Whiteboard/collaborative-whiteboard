@@ -51,13 +51,54 @@ function Login() {
     // })
 
     // console.log(await user.text());
-  }
-  return (
+    return (
     <>
       <p>Login page</p>
       <button onClick={buttonHandler}>Login</button>
     </>
   )
 };
+  function Signup() {
+      async function buttonHandler2() {
+        const client = {
+          client_id: "sample-client-id",
+          client_secret: "sample-client-secret",
+          redirect_url: "http://localhost:5173/oauthredirect",
+          response_type: "code",
+        };
+    
+        const newUserData = {
+          username: "testname",
+          password: "testpassword",
+          email: "testemail",
+        };
+    
+        const url = 'http://localhost:7766/registeruser?' + new URLSearchParams(client);
+        let data = await fetch(url, {
+          method: "POST",
+          mode: "cors",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newUserData),
+        });
+    
+        data = await data.text();
+    
+        if (data === "success") {
+          console.log("Sign-Up successful!");
+        } else {
+          console.log("Sorry that user already exists!", data);
+        }
+  }
+  return (
+    <>
+      <p>Sign-up page</p>
+      <button onClick={buttonHandler2}>Sign-up</button>
+    </>
+  )
+    
+};
 
 export default Login;
+export { Signup };
