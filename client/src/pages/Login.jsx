@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Login, Signup } from './auth';
 
 const LoginSignupForm = () => {
   const navigate = useNavigate();
   const [isSignup, setIsSignup] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [signupMessage, setSignupMessage] = useState('');
   const [loginMessage, setLoginMessage] = useState('');
 
@@ -19,15 +22,30 @@ const LoginSignupForm = () => {
     setIsSignup(true);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       if (isSignup) {
         setLoginMessage('');
-        setSignupMessage('Sign-Up Successful!');
+        if (password === confirmPassword) {
+          const signupResult = await Signup(username, email, password);
+          if (signupResult === 'success') {
+            setSignupMessage('Sign-Up Successful!');
+          } else {
+            setSignupMessage('Sign-Up Failed: ' + signupResult);
+          }
+        } else {
+          setSignupMessage('Passwords do not match');
+        }
       } else {
-        setLoginMessage('Login Successful!');
         setSignupMessage('');
+        const loginResult = await Login(email, password);
+        if (loginResult === 'success') {
+          setLoginMessage('Login Successful!');
+          //navigate to dashboard??
+        } else {
+          setLoginMessage('Login Failed: ' + loginResult);
+        }
       }
     } catch (error) {
       console.error('Error:', error);
@@ -91,26 +109,30 @@ const LoginSignupForm = () => {
                 <input
                   type="text"
                   placeholder="Enter your name"
-                  className="px-4 py-3 bg-gray-200 rounded-full outline-none text-base"
+                  className="px-4 py-3 bg-gray-200 rounded-full outline-none text-base font-poppins"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                 />
                 <input
                   type="email"
                   placeholder="Email"
-                  className="px-4 py-3 bg-gray-200 rounded-full outline-none text-base"
+                  className="px-4 py-3 bg-gray-200 rounded-full outline-none text-base font-poppins"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
                 <input
                   type="password"
                   placeholder="Password"
-                  className="px-4 py-3 bg-gray-200 rounded-full outline-none text-base"
+                  className="px-4 py-3 bg-gray-200 rounded-full outline-none text-base font-poppins"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
                 <input
                   type="password"
                   placeholder="Confirm password"
-                  className="px-4 py-3 bg-gray-200 rounded-full outline-none text-base"
+                  className="px-4 py-3 bg-gray-200 rounded-full outline-none text-base font-poppins"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                 />
               </div>
             )}
