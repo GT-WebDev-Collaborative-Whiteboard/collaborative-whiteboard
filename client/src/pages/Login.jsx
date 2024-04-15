@@ -6,6 +6,8 @@ const LoginSignupForm = () => {
   const [isSignup, setIsSignup] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [username, setUsername] = useState(''); // Added username state
+  const [confirmPassword, setConfirmPassword] = useState(''); // Added confirmPassword state
   const [signupMessage, setSignupMessage] = useState('');
   const [loginMessage, setLoginMessage] = useState('');
 
@@ -24,13 +26,31 @@ const LoginSignupForm = () => {
     try {
       if (isSignup) {
         setLoginMessage('');
-        setSignupMessage('Sign-Up Successful!');
+        // Add sign-up logic here
+        if (password === confirmPassword) {
+          // Call registerUser function with username, email, and password
+          registerUser(username, email, password);
+          setSignupMessage('Sign-Up Successful!');
+        } else {
+          setSignupMessage('Passwords do not match');
+        }
       } else {
-        setLoginMessage('Login Successful!');
         setSignupMessage('');
+        // Add login logic here
+        setLoginMessage('Login Successful!');
       }
     } catch (error) {
       console.error('Error:', error);
+    }
+  };
+
+  const registerUser = (username, email, password) => {
+    try {
+      // Implement your sign-up logic here
+      // You can make an API call or perform necessary operations
+      console.log('Registering user:', username, email, password);
+    } catch (error) {
+      console.error('Error registering user:', error);
     }
   };
 
@@ -91,26 +111,30 @@ const LoginSignupForm = () => {
                 <input
                   type="text"
                   placeholder="Enter your name"
-                  className="px-4 py-3 bg-gray-200 rounded-full outline-none text-base"
+                  className="px-4 py-3 bg-gray-200 rounded-full outline-none text-base font-poppins"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                 />
                 <input
                   type="email"
                   placeholder="Email"
-                  className="px-4 py-3 bg-gray-200 rounded-full outline-none text-base"
+                  className="px-4 py-3 bg-gray-200 rounded-full outline-none text-base font-poppins"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
                 <input
                   type="password"
                   placeholder="Password"
-                  className="px-4 py-3 bg-gray-200 rounded-full outline-none text-base"
+                  className="px-4 py-3 bg-gray-200 rounded-full outline-none text-base font-poppins"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
                 <input
                   type="password"
                   placeholder="Confirm password"
-                  className="px-4 py-3 bg-gray-200 rounded-full outline-none text-base"
+                  className="px-4 py-3 bg-gray-200 rounded-full outline-none text-base font-poppins"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                 />
               </div>
             )}
